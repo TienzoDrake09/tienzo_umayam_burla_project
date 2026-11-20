@@ -1,0 +1,13 @@
+#gameContainer {
+	width: min(100%, 80vmin);
+	aspect-ratio: 16 / 9;
+	margin-inline: auto;
+	border: 2px solid #222;
+	box-sizing: border-box;
+}
+
+#gameTitle {
+    text-align: center;
+    font-size: 2rem;
+    margin-block: 1rem;
+}
