@@ -93,3 +93,167 @@ body {
     font-size: 2rem;
     margin: 0;
 }
+
+/* mula dito ang dagdag */
+
+body { overscroll-behavior: none; }
+#enemyLayer { position: absolute; inset: 0; pointer-events: none; }
+
+.enemy {
+  position: absolute;
+  width: 4.5cqmin; height: 4.5cqmin;
+  border-radius: 12%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  transition: left 0.8s linear, top 0.8s linear, opacity 0.3s, scale 0.3s;
+}
+.enemy--destroyed { opacity: 0; scale: 2; }
+.enemy--hit-ship { opacity: 0; scale: 0.2; }
+
+.radar-coordinate--taken { opacity: 0; }
+
+#playerShip {
+  position: absolute; left: 50%; top: 50%;
+  width: 6cqmin; height: 8.5cqmin;
+  background: #39ff14;
+  clip-path: polygon(50% 0, 100% 100%, 50% 80%, 0 100%);
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease-out, filter 0.1s;
+  pointer-events: none;
+}
+
+#gameOver {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  background: rgba(0, 0, 0, 0.8); color: #39ff14; font-family: monospace;
+}
+#gameOver button { padding: 10px 24px; font-size: 18px; cursor: pointer; }
+
+/*Left / right panels: containers, so children scale with cqw / cqh */
+#leftControls, #rightControls {
+  container-type: size;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-evenly;
+  gap: 0.5rem; padding: 0.5rem;
+  overflow: hidden;
+  user-select: none; -webkit-user-select: none;
+}
+#hint { font-family: monospace; font-size: 0.7rem; text-align: center; color: #444; }
+.panel-title { font-family: monospace; font-size: min(3.5cqw, 3cqh); letter-spacing: 0.3em; color: #555; }
+
+/*  Cockpit display */
+.cockpit-row { display: flex; gap: 1.5cqw; justify-content: center; width: 100%; }
+.cockpit-display {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 0 1 auto; min-width: 0;
+  padding: 1cqh 2cqw;
+  background: #0b0f0b;
+  border: 3px solid #3a3a3a; border-radius: 8px;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 2px 0 #777;
+}
+.cockpit-label {
+  font-family: monospace; font-size: min(2.8cqw, 2.8cqh);
+  letter-spacing: 0.2em; color: #6a8a6a;
+}
+.cockpit-readout {
+  font-family: "Courier New", monospace; font-weight: bold;
+  font-size: min(5cqw, 6cqh);
+  color: #39ff14; white-space: nowrap;
+  text-shadow: 0 0 6px #39ff14, 0 0 14px rgba(57, 255, 20, 0.6);
+}
+
+/* Joystick (floating, fills the leftover space)  */
+#joystickZone {
+  position: relative;
+  flex: 1 1 0; min-height: 0; width: 100%;
+  border: 2px dashed #888; border-radius: 16px;
+  touch-action: none;
+}
+#joystickBase {
+  position: absolute; left: 50%; top: 50%;
+  width: min(45cqw, 28cqh); aspect-ratio: 1; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.25); border: 3px solid #333;
+  pointer-events: none;
+}
+#joystickBase.active { background: rgba(0, 120, 0, 0.35); border-color: #0a0; }
+#joystickKnob {
+  position: absolute; left: 50%; top: 50%;
+  width: 40%; aspect-ratio: 1; border-radius: 50%;
+  background: #222; border: 2px solid #39ff14;
+  transform: translate(-50%, -50%);
+}
+
+.rotate-row { display: flex; gap: 3cqw; }
+.rotate-row button {
+  --rot: min(14cqw, 10cqh);
+  width: var(--rot); height: var(--rot); font-size: calc(var(--rot) * 0.55);
+  border-radius: 50%; padding: 0;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+
+/*  Ammo switches */
+.switch-row { display: flex; gap: 3cqw; justify-content: center; }
+.ammo-switch {
+  --c: #fff;
+  --sw: min(26cqw, 19cqh);
+  position: relative; width: var(--sw); height: calc(var(--sw) * 2);
+  background: #1b1b1b; border: 3px solid #444; border-radius: 12px;
+  cursor: pointer; padding: 0;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.ammo-switch[data-color="red"]    { --c: #ff3b3b; }
+.ammo-switch[data-color="blue"]   { --c: #3b8bff; }
+.ammo-switch[data-color="yellow"] { --c: #ffe03b; }
+
+.switch-lamp {
+  position: absolute; top: 6%; left: 50%;
+  width: 26%; aspect-ratio: 1; border-radius: 50%;
+  transform: translateX(-50%);
+  background: #333; border: 2px solid #555;
+}
+.switch-lever {
+  position: absolute; left: 50%; width: 42%; height: 34%;
+  transform: translateX(-50%);
+  top: 50%;                              /* OFF = down */
+  background: linear-gradient(#bbb, #777); border: 2px solid #222; border-radius: 6px;
+  transition: top 0.15s;
+}
+.switch-name {
+  position: absolute; bottom: 3%; left: 0; right: 0;
+  font-family: monospace; font-weight: bold; color: #aaa;
+  font-size: calc(var(--sw) * 0.2);
+}
+.ammo-switch[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 0 12px var(--c); }
+.ammo-switch[aria-pressed="true"] .switch-lever { top: 22%; background: linear-gradient(var(--c), #444); }  /* ON = up */
+.ammo-switch[aria-pressed="true"] .switch-lamp { background: var(--c); border-color: var(--c); box-shadow: 0 0 10px var(--c); }
+.ammo-switch[aria-pressed="true"] .switch-name { color: var(--c); }
+
+/* Range buttons */
+.range-row { display: flex; gap: 2.5cqw; justify-content: center; }
+.range-btn {
+  --rb: min(27cqw, 17cqh);
+  width: var(--rb); height: var(--rb);
+  border-radius: 12px; padding: 0;
+  background: linear-gradient(#999, #555); border: 3px solid #222;
+  font-family: monospace; font-weight: bold; color: #fff;
+  font-size: calc(var(--rb) * 0.19);
+  cursor: pointer; box-shadow: 0 5px 0 #222;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.range-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #222; }
+.range-btn.cooling { opacity: 0.5; }
+
+/* Hide keyboard hint when the panel is short or on touch-only devices */
+@container (max-height: 420px) { #hint { display: none; } }
+@media (hover: none) { #hint { display: none; } }
+
+/*  Portrait phone / small tablet: radar on top, joystick (left) and weapons (right) below */
+@media (max-width: 800px) and (orientation: portrait) {
+  #gameContainer {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  }
+  #radarScreen   { grid-row: 1; grid-column: 1 / -1; }
+  #leftControls  { grid-row: 2; grid-column: 1; }
+  #rightControls { grid-row: 2; grid-column: 2; }
+}
