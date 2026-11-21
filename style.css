@@ -1,13 +1,95 @@
+body {
+	height: 100vh;
+	height: 100dvh;
+	margin: 0;
+	padding: 1rem;
+	box-sizing: border-box;
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr) 4rem;
+	gap: 1rem;
+}
+
 #gameContainer {
-	width: min(100%, 80vmin);
-	aspect-ratio: 16 / 9;
+	width: 90%;
+	height: 100%;
 	margin-inline: auto;
 	border: 2px solid #222;
 	box-sizing: border-box;
+	display: grid;
+	grid-template-columns: 3fr 4fr 3fr;
+	grid-template-rows: minmax(0, 1fr);
 }
+
+#leftControls,
+#radarScreen,
+#rightControls {
+	min-width: 0;
+	min-height: 0;
+	border: 1px solid #222;
+	box-sizing: border-box;
+}
+
+#leftControls,
+#rightControls {
+	background-color: #d3d3d3;
+}
+
+#radarScreen {
+	position: relative;
+	container-type: size;
+	background-color: #141414;
+	background-image:
+		radial-gradient(circle at 50% 50%, #39ff14 0 2px, transparent 2.5px),
+		radial-gradient(circle closest-side at 50% 50%, transparent calc(30% - 1px), #39ff14 30%, transparent calc(30% + 1px)),
+		radial-gradient(circle closest-side at 50% 50%, transparent calc(60% - 1px), #39ff14 60%, transparent calc(60% + 1px)),
+		radial-gradient(circle closest-side at 50% 50%, transparent calc(90% - 1px), #39ff14 90%, transparent calc(90% + 1px)),
+		repeating-conic-gradient(
+			from -0.3deg at 50% 50%,
+			#268e13 0deg 0.6deg,
+			transparent 0.6deg 45deg
+		);
+}
+
+#radarCoordinates {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.radar-coordinate-sector {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: min(100cqw, 100cqh);
+	height: min(100cqw, 100cqh);
+	transform: translate(-50%, -50%) rotate(var(--angle));
+}
+
+.radar-sector--1 { --angle: 22.5deg; }
+.radar-sector--2 { --angle: 67.5deg; }
+.radar-sector--3 { --angle: 112.5deg; }
+.radar-sector--4 { --angle: 157.5deg; }
+.radar-sector--5 { --angle: 202.5deg; }
+.radar-sector--6 { --angle: 247.5deg; }
+.radar-sector--7 { --angle: 292.5deg; }
+.radar-sector--8 { --angle: 337.5deg; }
+
+.radar-coordinate {
+	position: absolute;
+	left: 50%;
+	color: #39ff14;
+	font: 600 clamp(0.5rem, 0.8vw, 0.75rem) / 1 monospace;
+	text-shadow: 0 0 3px #39ff14;
+	transform: translate(-50%, -50%) rotate(calc(0deg - var(--angle)));
+	white-space: nowrap;
+}
+
+.radar-coordinate--a { top: 27.5%; }
+.radar-coordinate--b { top: 12.5%; }
+.radar-coordinate--c { top: 3.5%; }
 
 #gameTitle {
     text-align: center;
     font-size: 2rem;
-    margin-block: 1rem;
+    margin: 0;
 }
