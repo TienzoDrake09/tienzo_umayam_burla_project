@@ -44,7 +44,6 @@
 	animation: demonPulse 1.4s ease-in-out infinite;
 }
 
-/* Horned hull */
 .enemy--demon::before {
 	background: linear-gradient(180deg, #ff6b6b 0%, #ff3b3b 55%, #8f0f0f 100%);
 	clip-path: polygon(
@@ -61,7 +60,6 @@
 	);
 }
 
-/* Glowing demonic core */
 .enemy--demon::after {
 	inset: 34% 38% 36% 38%;
 	background: #ffd6d6;
@@ -84,14 +82,12 @@
 	animation: alienHover 2s ease-in-out infinite;
 }
 
-/* Saucer disc */
 .enemy--alien::before {
 	inset: 42% 0% 18% 0%;
 	background: linear-gradient(180deg, #fff199 0%, #ffe03b 55%, #b59200 100%);
 	border-radius: 50%;
 }
 
-/* Glowing cockpit dome */
 .enemy--alien::after {
 	inset: 16% 24% 46% 24%;
 	background: radial-gradient(circle at 40% 35%, #ffffff 0%, #ffe03b 65%, #c79f00 100%);
@@ -112,7 +108,6 @@
 	filter: drop-shadow(0 0 8px rgba(59, 139, 255, 0.85));
 }
 
-/* Standard fighter hull */
 .enemy--normal::before {
 	background: linear-gradient(180deg, #8ec0ff 0%, #3b8bff 55%, #12489e 100%);
 	clip-path: polygon(
@@ -125,7 +120,6 @@
 	);
 }
 
-/* Cockpit canopy */
 .enemy--normal::after {
 	inset: 28% 40% 38% 40%;
 	background: #d9ecff;
