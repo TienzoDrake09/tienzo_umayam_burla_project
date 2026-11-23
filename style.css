@@ -343,33 +343,6 @@ body {
 	pointer-events: none;
 }
 
-.enemy {
-	position: absolute;
-	width: 4.5cqmin;
-	height: 4.5cqmin;
-	border-radius: 16%;
-	transform: translate(-50%, -50%) rotate(45deg);
-	box-shadow: 0 0 10px currentColor;
-	transition: left 0.8s linear, top 0.8s linear, opacity 0.3s, scale 0.3s;
-}
-.enemy--destroyed { opacity: 0; scale: 2; }
-.enemy--hit-ship  { opacity: 0; scale: 0.2; }
-
-#playerShip {
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	z-index: 2;
-	width: 6cqmin;
-	height: 8.5cqmin;
-	background: var(--radar-green);
-	clip-path: polygon(50% 0, 100% 100%, 50% 80%, 0 100%);
-	filter: drop-shadow(0 0 6px var(--radar-green));
-	transform: translate(-50%, -50%);
-	transition: transform 0.2s ease-out, filter 0.1s;
-	pointer-events: none;
-}
-
 #gameOver {
 	position: absolute;
 	inset: 0;
@@ -578,7 +551,7 @@ html { scroll-behavior: auto; }
 
 /* ===== STANDALONE PAGE BASE ===== */
 body.page { display: block; height: auto; min-height: 100dvh; padding: 0; overflow-x: hidden; background: #05090a; }
-body.page::after {                                /* CRT scanlines */
+body.page::after {
 	content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none;
 	background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
 }
@@ -601,8 +574,8 @@ body.page::after {                                /* CRT scanlines */
 
 /* ===== SCREEN SWITCHING ===== */
 .screen { display: none; }
-#start { display: flex; }                                        /* default screen */
-body:has(:target:not(#start)) #start { display: none; }          /* hide start when going elsewhere */
+#start { display: flex; }
+body:has(:target:not(#start)) #start { display: none; }
 
 #start:target,
 #home:target, #home:has(:target),
@@ -616,7 +589,7 @@ body:has(:target:not(#start)) #start { display: none; }          /* hide start w
 	gap: 1rem; padding: 1rem;
 }
 
-/* ===== GAME SCREEN (the old body grid, now inside #game) ===== */
+/* ===== GAME SCREEN ===== */
 #game {
 	position: relative; z-index: 1;
 	height: 100dvh; padding: 1rem;
@@ -625,7 +598,7 @@ body:has(:target:not(#start)) #start { display: none; }          /* hide start w
 	background: radial-gradient(circle at 50% 0%, #1a2128 0%, var(--bg-hull) 70%);
 }
 
-/* ===== GAME OVERLAYS (briefing, pause, win, game over) ===== */
+/* ===== GAME OVERLAYS ===== */
 .game-overlay {
 	position: fixed; inset: 0; z-index: 50; display: none;
 	align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;
@@ -655,7 +628,7 @@ body:has(:target:not(#start)) #start { display: none; }          /* hide start w
 .menu-hi { font-size: 0.85rem; letter-spacing: 0.12em; color: var(--radar-green); text-shadow: 0 0 6px var(--radar-glow); }
 .menu-label { font-size: 0.7rem; letter-spacing: 0.3em; color: var(--text-muted); margin-bottom: -0.4rem; }
 
-/* ===== BUTTONS (work on <button> and <a>) ===== */
+/* ===== BUTTONS ===== */
 .menu-btn, .diff-btn, .bar-btn {
 	font-family: var(--font-mono); font-weight: bold; letter-spacing: 0.12em; text-transform: uppercase;
 	color: var(--radar-green); background: #102412;
@@ -718,7 +691,6 @@ body:has(:target:not(#start)) #start { display: none; }          /* hide start w
 #lb-endless:target { display: block; }
 #lb-endless:target ~ #lb-arcade { display: none; }
 
-/* highlight the active tab */
 #leaderboard:has(#lb-endless:target) .board-tabs a[href="#lb-endless"],
 #leaderboard:not(:has(#lb-endless:target)) .board-tabs a[href="#lb-arcade"] {
 	background: var(--radar-green); color: #081209;
@@ -737,23 +709,18 @@ body:has(:target:not(#start)) #start { display: none; }          /* hide start w
 }
 
 /* =====================================================================
-   RESPONSIVE PATCH  ->  idikit sa PINAKADULO ng styles.css
-   (Phone, tablet, iPad, laptop; portrait at landscape)
+   RESPONSIVE PATCH
    ===================================================================== */
 
-/* ---------- name input error flash (used by script.js) ---------- */
 .nick-input--error { border-color: #ff3b3b; box-shadow: 0 0 10px rgba(255, 59, 59, 0.6); }
 .nick-input::placeholder { color: #1d6b10; }
 
-/* ---------- general fixes ---------- */
 html { -webkit-text-size-adjust: 100%; }
 
-/* radar labels scale with the radar itself (old vw-based size was tiny on phones) */
 .radar-coordinate { font-size: clamp(0.4rem, 2.3cqmin, 0.8rem); }
 
-/* use the real visible height on mobile browsers + notches */
 #game {
-	height: 100vh;                       /* fallback */
+	height: 100vh;
 	height: 100dvh;
 	padding-top:    max(1rem, env(safe-area-inset-top));
 	padding-bottom: max(1rem, env(safe-area-inset-bottom));
@@ -762,12 +729,11 @@ html { -webkit-text-size-adjust: 100%; }
 }
 
 .menu-panel { max-width: 100%; }
-.menu-btn, .diff-btn, .bar-btn { min-height: 44px; }   /* comfortable touch size */
+.menu-btn, .diff-btn, .bar-btn { min-height: 44px; }
 .board { table-layout: fixed; }
 .board th:nth-child(1) { width: 2.2rem; }
 .board td:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ---------- PORTRAIT: phones AND tablets/iPad (stack radar on top) ---------- */
 @media (orientation: portrait) and (max-width: 1100px) {
 	#game { gap: 0.5rem; padding: 0.5rem; padding-top: max(0.5rem, env(safe-area-inset-top)); padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
 	#gameContainer {
@@ -782,7 +748,6 @@ html { -webkit-text-size-adjust: 100%; }
 	#hint { display: none; }
 }
 
-/* ---------- SMALL PHONES (portrait) ---------- */
 @media (max-width: 480px) {
 	#gameTitle { font-size: 0.85rem; letter-spacing: 0.12em; }
 	#leftControls, #rightControls { padding: 0.4rem; gap: 0.3rem; }
@@ -790,17 +755,16 @@ html { -webkit-text-size-adjust: 100%; }
 	#settingsBar { padding: 0 0.5rem; gap: 0.4rem; }
 	#barStatus { display: none; }
 	.bar-btn { padding: 0.4rem 0.6rem; font-size: 0.7rem; }
-	.pause-fab { display: none; }              /* PAUSE is already in the bottom bar */
+	.pause-fab { display: none; }
 	.menu-panel { padding: 1.1rem 0.9rem; }
 	.board { font-size: 0.78rem; }
 	.board th, .board td { padding: 0.35rem 0.25rem; }
 	.board .date { font-size: 0.6rem; }
 }
 
-/* ---------- LANDSCAPE PHONES / short screens ---------- */
 @media (orientation: landscape) and (max-height: 520px) {
 	#game { padding: 0.35rem; gap: 0.35rem; grid-template-rows: minmax(0, 1fr) 2.6rem; }
-	#gameTitle { display: none; }               /* save vertical space */
+	#gameTitle { display: none; }
 	#gameContainer { width: 100%; grid-template-columns: 3fr 4fr 3fr; }
 	#settingsBar { width: 100%; padding: 0 0.6rem; }
 	.bar-btn { padding: 0.3rem 0.7rem; min-height: 0; }
@@ -811,18 +775,15 @@ html { -webkit-text-size-adjust: 100%; }
 	.start-title { font-size: clamp(2rem, 14vh, 4rem); }
 }
 
-/* ---------- TABLETS (landscape / small laptops) ---------- */
 @media (orientation: landscape) and (min-width: 801px) and (max-width: 1100px) {
 	#gameContainer { width: 98%; }
 	#settingsBar   { width: 98%; }
 }
 
-/* ---------- LARGE SCREENS ---------- */
 @media (min-width: 1600px) {
 	.menu-panel { width: min(92vw, 520px); }
 }
 
-/* ---------- touch devices: no sticky hover colors ---------- */
 @media (hover: none) {
 	.menu-btn:hover, .diff-btn:hover, .bar-btn:hover:not(:disabled) { background: #102412; color: var(--radar-green); }
 	.menu-btn:active, .diff-btn:active, .bar-btn:active { background: var(--radar-green); color: #081209; }
