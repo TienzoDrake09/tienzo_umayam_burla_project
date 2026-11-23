@@ -34,6 +34,7 @@
 		String(raw || "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ").trim().slice(0, 10);
 
 	let pilot = cleanName(store.get(KEY_NAME)) || DEFAULT_NAME;
+	let gameMode = "arcade";
 	const getName = () => pilot;
 
 	function setName(raw) {
@@ -151,6 +152,137 @@
 		return rank;
 	}
 
+	function setupEnemySpawning() {
+		const radar = document.getElementById("radarScreen");
+		const coordinates = document.querySelectorAll("#radarCoordinates .radar-coordinate--c");
+		const enemyLayer = document.getElementById("enemyLayer");
+		const hullReadout = document.getElementById("livesValue");
+		const scoreReadout = document.getElementById("scoreValue");
+		const enemyTypes = ["enemy--demon", "enemy--alien", "enemy--normal"];
+		const initialSpawnDelay = 5000;
+		const minimumSpawnDelay = 1500;
+		const spawnAcceleration = 0.06;
+		const travelDuration = 14000;
+
+		if (!radar || !enemyLayer || !hullReadout || !scoreReadout || coordinates.length === 0) {
+			console.error("Enemy spawning could not start: required radar elements are missing.");
+			return;
+		}
+
+		let lives = 3;
+		let gameElapsed = 0;
+		let lastFrameTime = null;
+		let spawnTimer = null;
+		let animationFrame = null;
+		let initialized = false;
+		let running = false;
+		const activeEnemies = [];
+
+		function resetGame() {
+			activeEnemies.length = 0;
+			enemyLayer.textContent = "";
+			lives = 3;
+			gameElapsed = 0;
+			hullReadout.textContent = String(lives);
+			scoreReadout.textContent = "0";
+			initialized = true;
+		}
+
+		function spawnEnemy() {
+			const coordinate = coordinates[Math.floor(Math.random() * coordinates.length)];
+			const coordinateBounds = coordinate.getBoundingClientRect();
+			const layerBounds = enemyLayer.getBoundingClientRect();
+			const startX = ((coordinateBounds.left + coordinateBounds.width / 2 - layerBounds.left) / layerBounds.width) * 100;
+			const startY = ((coordinateBounds.top + coordinateBounds.height / 2 - layerBounds.top) / layerBounds.height) * 100;
+			const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+			const enemy = document.createElement("div");
+
+			enemy.className = "enemy " + type;
+			enemy.style.left = startX + "%";
+			enemy.style.top = startY + "%";
+			enemyLayer.appendChild(enemy);
+			activeEnemies.push({ element: enemy, startX, startY, elapsed: 0 });
+		}
+
+		function scheduleSpawn() {
+			const delay = Math.max(minimumSpawnDelay, initialSpawnDelay - gameElapsed * spawnAcceleration);
+			spawnTimer = setTimeout(() => {
+				if (!running) return;
+				spawnEnemy();
+				scheduleSpawn();
+			}, delay);
+		}
+
+		function pauseGame() {
+			running = false;
+			clearTimeout(spawnTimer);
+			if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+			animationFrame = null;
+			lastFrameTime = null;
+		}
+
+		function updateEnemies(timestamp) {
+			if (!running) return;
+
+			const delta = lastFrameTime === null ? 0 : timestamp - lastFrameTime;
+			lastFrameTime = timestamp;
+			gameElapsed += delta;
+
+			for (let i = activeEnemies.length - 1; i >= 0; i--) {
+				const activeEnemy = activeEnemies[i];
+				activeEnemy.elapsed += delta;
+				const progress = Math.min(1, activeEnemy.elapsed / travelDuration);
+				const x = activeEnemy.startX + (50 - activeEnemy.startX) * progress;
+				const y = activeEnemy.startY + (50 - activeEnemy.startY) * progress;
+
+				activeEnemy.element.style.left = x + "%";
+				activeEnemy.element.style.top = y + "%";
+
+				if (progress >= 1) {
+					activeEnemy.element.remove();
+					activeEnemies.splice(i, 1);
+					lives -= 1;
+					hullReadout.textContent = String(lives);
+
+					if (lives <= 0) {
+						pauseGame();
+						finishGame({
+							mode: gameMode,
+							score: Number(scoreReadout.textContent) || 0,
+							enemies: 0
+						});
+						return;
+					}
+				}
+			}
+
+			animationFrame = requestAnimationFrame(updateEnemies);
+		}
+
+		function resumeGame() {
+			if (running) return;
+			running = true;
+			lastFrameTime = null;
+			scheduleSpawn();
+			animationFrame = requestAnimationFrame(updateEnemies);
+		}
+
+		function syncGameState() {
+			if (location.hash === "#game" && !document.hidden) {
+				if (!initialized) resetGame();
+				resumeGame();
+				return;
+			}
+
+			pauseGame();
+			if (location.hash !== "#pause" && location.hash !== "#game") initialized = false;
+		}
+
+		window.addEventListener("hashchange", syncGameState);
+		document.addEventListener("visibilitychange", syncGameState);
+		syncGameState();
+	}
+
 	window.Beelzebub = { getName, setName, submitScore, finishGame };
 
 	/* ---------- wire up the page ---------- */
@@ -170,6 +302,7 @@
 		/* If no name was typed, send the player back to type one before launching */
 		document.querySelectorAll('#arcade a[href="#game"], #endless a[href="#game"]').forEach(btn => {
 			btn.addEventListener("click", (e) => {
+				gameMode = btn.closest("#endless") ? "endless" : "arcade";
 				if (!cleanName(store.get(KEY_NAME))) {
 					e.preventDefault();
 					location.hash = "#home";
@@ -183,6 +316,7 @@
 		});
 
 		renderAll();
+		setupEnemySpawning();
 	});
 })();
 
