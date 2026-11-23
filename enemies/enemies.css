@@ -1,5 +1,5 @@
 /* =========================================
-   ENEMY BASE (Radar-Ready)
+   ENEMY BASE (RADAR-READY)
    ========================================= */
 
 .enemy {
@@ -35,7 +35,7 @@
 }
 
 /* =========================================
-   RED: DEMON SHIP (Horned Cruiser)
+   RED: DEMON SHIP (HORNED CRUISER)
    ========================================= */
 
 .enemy--demon {
@@ -73,7 +73,7 @@
 }
 
 /* =========================================
-   YELLOW: ALIEN ENEMY (UFO Saucer)
+   YELLOW: ALIEN ENEMY (UFO SAUCER)
    ========================================= */
 
 .enemy--alien {
@@ -100,7 +100,7 @@
 }
 
 /* =========================================
-   BLUE: NORMAL ENEMY SHIP (Interceptor)
+   BLUE: NORMAL ENEMY SHIP (INTERCEPTOR)
    ========================================= */
 
 .enemy--normal {

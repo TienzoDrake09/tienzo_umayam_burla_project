@@ -20,7 +20,7 @@
 	pointer-events: none;
 }
 
-/* Rotate SVG -90deg so the nose points UP (North / Sector 8) */
+/* ROTATE SVG -90DEG SO THE NOSE POINTS UP (NORTH / SECTOR 8) */
 #playerShip .beelzebub-svg {
 	width: 100%;
 	height: 100%;

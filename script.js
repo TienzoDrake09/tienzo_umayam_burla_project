@@ -1,12 +1,13 @@
 (() => {
 	"use strict";
 
+	/* CORE STORAGE KEYS AND DEFAULTS */
 	const KEY_NAME = "beelzebub.callsign";
 	const KEY_BOARD = "beelzebub.board.v1";
 	const DEFAULT_NAME = "PILOT";
 	const MAX_ROWS = 10;
 
-	/* ---------- default leaderboard entries ---------- */
+	/* ---------- DEFAULT LEADERBOARD ENTRIES ---------- */
 	const SEED = {
 		arcade: [
 			{ name: "NOVA", score: 550, date: "11/21/2026", won: true },
@@ -23,13 +24,13 @@
 		]
 	};
 
-	/* ---------- safe storage ---------- */
+	/* ---------- SAFE STORAGE ---------- */
 	const store = {
 		get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-		set(k, v) { try { localStorage.setItem(k, v); } catch { /* ignore */ } }
+		set(k, v) { try { localStorage.setItem(k, v); } catch { /* IGNORE UNAVAILABLE STORAGE */ } }
 	};
 
-	/* ---------- name ---------- */
+	/* ---------- PILOT NAME ---------- */
 	const cleanName = (raw) =>
 		String(raw || "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ").trim().slice(0, 10);
 
@@ -42,7 +43,7 @@
 		renderAll();
 	}
 
-	/* ---------- leaderboard data ---------- */
+	/* ---------- LEADERBOARD DATA ---------- */
 	function keepBestScores(entries) {
 		const bestByName = new Map();
 		entries.forEach(entry => {
@@ -60,7 +61,7 @@
 				data.endless = keepBestScores(data.endless);
 				return data;
 			}
-		} catch { /* fall through */ }
+		} catch { /* FALL THROUGH TO SEED DATA */ }
 		return JSON.parse(JSON.stringify(SEED));
 	}
 	let board = loadBoard();
@@ -70,7 +71,7 @@
 		return board[mode].filter(e => e.name === name).reduce((m, e) => Math.max(m, e.score), 0);
 	}
 
-	/* ---------- rendering ---------- */
+	/* ---------- LEADERBOARD AND HUD RENDERING ---------- */
 	function cell(text, cls) {
 		const td = document.createElement("td");
 		if (cls) td.className = cls;
@@ -209,7 +210,7 @@
 			gain.connect(audioCtx.destination);
 			osc.start();
 			osc.stop(audioCtx.currentTime + duration);
-		} catch { /* audio blocked */ }
+		} catch { /* AUDIO BLOCKED BY THE BROWSER */ }
 	}
 
 	const sfx = {
@@ -324,7 +325,7 @@
 		});
 	}
 
-	/* ---------- Laser Visual ---------- */
+	/* ---------- LASER VISUAL ---------- */
 	function fireLaserVisual(sector, ring, colorHex) {
 		const pos = getRadarPos(sector, ring);
 		const beam = document.createElement("div");
@@ -336,7 +337,7 @@
 		setTimeout(() => beam.remove(), 220);
 	}
 
-	/* ---------- Shooting Logic ---------- */
+	/* ---------- SHOOTING LOGIC ---------- */
 	function fireAt(ring) {
 		if (!state.running || state.paused) return;
 
@@ -382,7 +383,7 @@
 		}
 	}
 
-	/* ---------- Enemy Spawning & Movement ---------- */
+	/* ---------- ENEMY SPAWN AND MOVEMENT ---------- */
 	function spawnEnemy() {
 		if (!state.running || state.paused) return;
 
@@ -553,7 +554,7 @@
 	}
 
 	/* =====================================================================
-	   WIRE UP PAGE, CONTROLS & JOYSTICK
+	   PAGE, CONTROL, AND JOYSTICK WIRING
 	   ===================================================================== */
 	document.addEventListener("DOMContentLoaded", () => {
 		const input = document.getElementById("nick");
