@@ -34,7 +34,6 @@
 		String(raw || "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").replace(/\s+/g, " ").trim().slice(0, 10);
 
 	let pilot = cleanName(store.get(KEY_NAME)) || DEFAULT_NAME;
-	let gameMode = "arcade";
 	const getName = () => pilot;
 
 	function setName(raw) {
@@ -143,137 +142,6 @@
 		return rank;
 	}
 
-	function setupEnemySpawning() {
-		const radar = document.getElementById("radarScreen");
-		const coordinates = document.querySelectorAll("#radarCoordinates .radar-coordinate--c");
-		const enemyLayer = document.getElementById("enemyLayer");
-		const hullReadout = document.getElementById("livesValue");
-		const scoreReadout = document.getElementById("scoreValue");
-		const enemyTypes = ["enemy--demon", "enemy--alien", "enemy--normal"];
-		const initialSpawnDelay = 5000;
-		const minimumSpawnDelay = 1500;
-		const spawnAcceleration = 0.06;
-		const travelDuration = 14000;
-
-		if (!radar || !enemyLayer || !hullReadout || !scoreReadout || coordinates.length === 0) {
-			console.error("Enemy spawning could not start: required radar elements are missing.");
-			return;
-		}
-
-		let lives = 3;
-		let gameElapsed = 0;
-		let lastFrameTime = null;
-		let spawnTimer = null;
-		let animationFrame = null;
-		let initialized = false;
-		let running = false;
-		const activeEnemies = [];
-
-		function resetGame() {
-			activeEnemies.length = 0;
-			enemyLayer.textContent = "";
-			lives = 3;
-			gameElapsed = 0;
-			hullReadout.textContent = String(lives);
-			scoreReadout.textContent = "0";
-			initialized = true;
-		}
-
-		function spawnEnemy() {
-			const coordinate = coordinates[Math.floor(Math.random() * coordinates.length)];
-			const coordinateBounds = coordinate.getBoundingClientRect();
-			const layerBounds = enemyLayer.getBoundingClientRect();
-			const startX = ((coordinateBounds.left + coordinateBounds.width / 2 - layerBounds.left) / layerBounds.width) * 100;
-			const startY = ((coordinateBounds.top + coordinateBounds.height / 2 - layerBounds.top) / layerBounds.height) * 100;
-			const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-			const enemy = document.createElement("div");
-
-			enemy.className = "enemy " + type;
-			enemy.style.left = startX + "%";
-			enemy.style.top = startY + "%";
-			enemyLayer.appendChild(enemy);
-			activeEnemies.push({ element: enemy, startX, startY, elapsed: 0 });
-		}
-
-		function scheduleSpawn() {
-			const delay = Math.max(minimumSpawnDelay, initialSpawnDelay - gameElapsed * spawnAcceleration);
-			spawnTimer = setTimeout(() => {
-				if (!running) return;
-				spawnEnemy();
-				scheduleSpawn();
-			}, delay);
-		}
-
-		function pauseGame() {
-			running = false;
-			clearTimeout(spawnTimer);
-			if (animationFrame !== null) cancelAnimationFrame(animationFrame);
-			animationFrame = null;
-			lastFrameTime = null;
-		}
-
-		function updateEnemies(timestamp) {
-			if (!running) return;
-
-			const delta = lastFrameTime === null ? 0 : timestamp - lastFrameTime;
-			lastFrameTime = timestamp;
-			gameElapsed += delta;
-
-			for (let i = activeEnemies.length - 1; i >= 0; i--) {
-				const activeEnemy = activeEnemies[i];
-				activeEnemy.elapsed += delta;
-				const progress = Math.min(1, activeEnemy.elapsed / travelDuration);
-				const x = activeEnemy.startX + (50 - activeEnemy.startX) * progress;
-				const y = activeEnemy.startY + (50 - activeEnemy.startY) * progress;
-
-				activeEnemy.element.style.left = x + "%";
-				activeEnemy.element.style.top = y + "%";
-
-				if (progress >= 1) {
-					activeEnemy.element.remove();
-					activeEnemies.splice(i, 1);
-					lives -= 1;
-					hullReadout.textContent = String(lives);
-
-					if (lives <= 0) {
-						pauseGame();
-						finishGame({
-							mode: gameMode,
-							score: Number(scoreReadout.textContent) || 0,
-							enemies: 0
-						});
-						return;
-					}
-				}
-			}
-
-			animationFrame = requestAnimationFrame(updateEnemies);
-		}
-
-		function resumeGame() {
-			if (running) return;
-			running = true;
-			lastFrameTime = null;
-			scheduleSpawn();
-			animationFrame = requestAnimationFrame(updateEnemies);
-		}
-
-		function syncGameState() {
-			if (location.hash === "#game" && !document.hidden) {
-				if (!initialized) resetGame();
-				resumeGame();
-				return;
-			}
-
-			pauseGame();
-			if (location.hash !== "#pause" && location.hash !== "#game") initialized = false;
-		}
-
-		window.addEventListener("hashchange", syncGameState);
-		document.addEventListener("visibilitychange", syncGameState);
-		syncGameState();
-	}
-
 	window.Beelzebub = { getName, setName, submitScore, finishGame };
 
 	/* =====================================================================
@@ -338,14 +206,28 @@
 		enemies: [],
 		nextId: 1,
 		spawnTimer: null,
-		moveTimer: null
+		moveTimer: null,
+		elapsedMs: 0,
+		runStartedAt: null
 	};
+
+	const DIFFICULTY_RAMP_MS = 90000;
+	const INITIAL_SPAWN_INTERVAL_MS = 7000;
+	const MIN_SPAWN_INTERVAL_MS = 1800;
+	const INITIAL_MOVE_INTERVAL_MS = 8000;
+	const MIN_MOVE_INTERVAL_MS = 2200;
 
 	let radarScreen, enemyLayer, playerShip;
 	let livesEl, facingEl, scoreEl, barStatusEl, pauseStatsEl;
 	let ammoSwitches, rangeBtns, joystickZone, joystickBase, joystickKnob;
 
 	const sectorToAngle = (sector) => (sector - 1) * 45 + 22.5;
+	const gameElapsedMs = () =>
+		state.elapsedMs + (state.runStartedAt === null ? 0 : performance.now() - state.runStartedAt);
+	const progressiveInterval = (initial, minimum) => {
+		const progress = Math.min(gameElapsedMs() / DIFFICULTY_RAMP_MS, 1);
+		return initial - (initial - minimum) * progress;
+	};
 
 	function getRadarPos(sector, ring) {
 		const w = radarScreen.clientWidth || 300;
@@ -531,16 +413,37 @@
 	}
 
 	function clearTimers() {
-		clearInterval(state.spawnTimer);
-		clearInterval(state.moveTimer);
+		clearTimeout(state.spawnTimer);
+		clearTimeout(state.moveTimer);
 		state.spawnTimer = null;
 		state.moveTimer = null;
 	}
 
 	function startTimers() {
 		clearTimers();
-		state.spawnTimer = setInterval(spawnEnemy, 2400);
-		state.moveTimer = setInterval(advanceEnemies, 3200);
+
+		function scheduleSpawn() {
+			if (!state.running || state.paused) return;
+			state.spawnTimer = setTimeout(() => {
+				state.spawnTimer = null;
+				if (!state.running || state.paused) return;
+				spawnEnemy();
+				scheduleSpawn();
+			}, progressiveInterval(INITIAL_SPAWN_INTERVAL_MS, MIN_SPAWN_INTERVAL_MS));
+		}
+
+		function scheduleMove() {
+			if (!state.running || state.paused) return;
+			state.moveTimer = setTimeout(() => {
+				state.moveTimer = null;
+				if (!state.running || state.paused) return;
+				advanceEnemies();
+				scheduleMove();
+			}, progressiveInterval(INITIAL_MOVE_INTERVAL_MS, MIN_MOVE_INTERVAL_MS));
+		}
+
+		scheduleSpawn();
+		scheduleMove();
 	}
 
 	function startMatch(mode = state.mode) {
@@ -548,6 +451,8 @@
 		state.mode = mode;
 		state.running = true;
 		state.paused = false;
+		state.elapsedMs = 0;
+		state.runStartedAt = performance.now();
 		state.lives = 3;
 		state.score = 0;
 		state.destroyed = 0;
@@ -560,11 +465,12 @@
 		updateCoordinateLabels();
 		updateHUD(mode === "arcade" ? `ARCADE // 0/${ARCADE_GOAL}` : "ENDLESS // SURVIVE");
 		startTimers();
-		setTimeout(spawnEnemy, 500);
 	}
 
 	function pauseMatch() {
 		if (!state.running) return;
+		state.elapsedMs = gameElapsedMs();
+		state.runStartedAt = null;
 		state.paused = true;
 		clearTimers();
 		updateHUD("PAUSED");
@@ -573,6 +479,7 @@
 	function resumeMatch() {
 		if (!state.running) return;
 		state.paused = false;
+		state.runStartedAt = performance.now();
 		updateHUD(state.mode === "arcade" ? `ARCADE // ${state.destroyed}/${ARCADE_GOAL}` : "ENDLESS // SURVIVE");
 		startTimers();
 	}
@@ -580,6 +487,7 @@
 	function stopMatch() {
 		state.running = false;
 		state.paused = false;
+		state.runStartedAt = null;
 		clearTimers();
 		state.enemies.forEach(e => e.el.remove());
 		state.enemies = [];
@@ -589,6 +497,7 @@
 	function endMatch(won) {
 		state.running = false;
 		state.paused = false;
+		state.runStartedAt = null;
 		clearTimers();
 		const hullBonus = won ? state.lives * 50 : 0;
 		const finalScore = state.score + hullBonus;
@@ -632,7 +541,6 @@
 
 		document.querySelectorAll('#arcade a[href="#game"], #endless a[href="#game"]').forEach(btn => {
 			btn.addEventListener("click", (e) => {
-				gameMode = btn.closest("#endless") ? "endless" : "arcade";
 				if (!cleanName(store.get(KEY_NAME))) {
 					e.preventDefault();
 					location.hash = "#home";
@@ -792,6 +700,5 @@
 
 		updateHUD("STANDBY");
 		renderAll();
-		setupEnemySpawning();
 	});
 })();
