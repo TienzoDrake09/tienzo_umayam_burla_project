@@ -149,6 +149,44 @@
 	   ===================================================================== */
 	let soundOn = true;
 	let audioCtx = null;
+	let backgroundMusic = null;
+	let currentMusicTrack = "main";
+	let pendingMusicTrack = null;
+	const failedMusicTracks = new Set();
+
+	function setBackgroundMusic(track) {
+		currentMusicTrack = track;
+		if (!soundOn || !backgroundMusic) return;
+
+		const source = track === "game" ? "Audio/ingame.mp3" : "Audio/main.mp3";
+		if (backgroundMusic.getAttribute("src") !== source) {
+			backgroundMusic.src = source;
+			backgroundMusic.load();
+		}
+
+		if (failedMusicTracks.has(track)) return;
+
+		if (backgroundMusic.paused) {
+			if (pendingMusicTrack === track) return;
+			pendingMusicTrack = track;
+			const playback = backgroundMusic.play();
+			if (playback) {
+				playback.then(
+					() => {
+						if (pendingMusicTrack === track) pendingMusicTrack = null;
+					},
+					error => {
+						if (pendingMusicTrack === track) pendingMusicTrack = null;
+						if (currentMusicTrack !== track || error.name === "NotAllowedError" || error.name === "AbortError") return;
+						failedMusicTracks.add(track);
+						console.error("Background music could not be played.", error);
+					}
+				);
+			} else {
+				pendingMusicTrack = null;
+			}
+		}
+	}
 
 	function playTone(freq, duration, type = "square", volume = 0.08, endFreq = null) {
 		if (!soundOn) return;
@@ -464,6 +502,7 @@
 		setAmmo("red");
 		updateCoordinateLabels();
 		updateHUD(mode === "arcade" ? `ARCADE // 0/${ARCADE_GOAL}` : "ENDLESS // SURVIVE");
+		setBackgroundMusic("game");
 		startTimers();
 	}
 
@@ -492,6 +531,7 @@
 		state.enemies.forEach(e => e.el.remove());
 		state.enemies = [];
 		updateCoordinateLabels();
+		setBackgroundMusic("main");
 	}
 
 	function endMatch(won) {
@@ -516,6 +556,8 @@
 	   ===================================================================== */
 	document.addEventListener("DOMContentLoaded", () => {
 		const input = document.getElementById("nick");
+		backgroundMusic = document.getElementById("backgroundMusic");
+		backgroundMusic.volume = 0.35;
 		radarScreen = document.getElementById("radarScreen");
 		enemyLayer = document.getElementById("enemyLayer");
 		playerShip = document.getElementById("playerShip");
@@ -538,6 +580,19 @@
 				setName(cleaned);
 			});
 		}
+
+		setBackgroundMusic("main");
+		const retryBackgroundMusic = () => setBackgroundMusic(currentMusicTrack);
+		document.addEventListener("pointerdown", retryBackgroundMusic);
+		document.addEventListener("keydown", retryBackgroundMusic);
+
+		window.addEventListener("hashchange", () => {
+			if (["#game", "#pause", "#win", "#lose"].includes(location.hash)) {
+				if (state.running) setBackgroundMusic("game");
+			} else {
+				stopMatch();
+			}
+		});
 
 		document.querySelectorAll('#arcade a[href="#game"], #endless a[href="#game"]').forEach(btn => {
 			btn.addEventListener("click", (e) => {
@@ -575,6 +630,8 @@
 			soundBtn.addEventListener("click", () => {
 				soundOn = !soundOn;
 				soundBtn.textContent = soundOn ? "SOUND: ON" : "SOUND: OFF";
+				if (soundOn) setBackgroundMusic(currentMusicTrack);
+				else if (backgroundMusic) backgroundMusic.pause();
 			});
 		}
 
