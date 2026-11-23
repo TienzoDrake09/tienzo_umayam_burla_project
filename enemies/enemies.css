@@ -1,0 +1,210 @@
+/* =========================================
+   ENEMY BASE (Radar-Ready)
+   ========================================= */
+
+.enemy {
+	--enemy-size: 5.5cqmin;
+	--enemy-color: #ffffff;
+	position: absolute;
+	width: var(--enemy-size);
+	height: var(--enemy-size);
+	color: var(--enemy-color);
+	border-radius: 0;
+	box-shadow: none;
+	transform: translate(-50%, -50%);
+	transition: left 0.8s linear, top 0.8s linear, opacity 0.3s, scale 0.3s;
+	pointer-events: none;
+}
+
+.enemy::before,
+.enemy::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.enemy--destroyed {
+	opacity: 0;
+	scale: 2;
+}
+
+.enemy--hit-ship {
+	opacity: 0;
+	scale: 0.2;
+}
+
+/* =========================================
+   RED: DEMON SHIP (Horned Cruiser)
+   ========================================= */
+
+.enemy--demon {
+	--enemy-color: #ff3b3b;
+	filter: drop-shadow(0 0 8px rgba(255, 59, 59, 0.85));
+	animation: demonPulse 1.4s ease-in-out infinite;
+}
+
+/* Horned hull */
+.enemy--demon::before {
+	background: linear-gradient(180deg, #ff6b6b 0%, #ff3b3b 55%, #8f0f0f 100%);
+	clip-path: polygon(
+		12% 0%,
+		34% 30%,
+		50% 14%,
+		66% 30%,
+		88% 0%,
+		100% 45%,
+		76% 100%,
+		50% 76%,
+		24% 100%,
+		0% 45%
+	);
+}
+
+/* Glowing demonic core */
+.enemy--demon::after {
+	inset: 34% 38% 36% 38%;
+	background: #ffd6d6;
+	border-radius: 50%;
+	box-shadow: 0 0 8px #ff3b3b;
+}
+
+@keyframes demonPulse {
+	0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 59, 59, 0.75)); }
+	50%      { filter: drop-shadow(0 0 14px rgba(255, 59, 59, 1)); }
+}
+
+/* =========================================
+   YELLOW: ALIEN ENEMY (UFO Saucer)
+   ========================================= */
+
+.enemy--alien {
+	--enemy-color: #ffe03b;
+	filter: drop-shadow(0 0 8px rgba(255, 224, 59, 0.85));
+	animation: alienHover 2s ease-in-out infinite;
+}
+
+/* Saucer disc */
+.enemy--alien::before {
+	inset: 42% 0% 18% 0%;
+	background: linear-gradient(180deg, #fff199 0%, #ffe03b 55%, #b59200 100%);
+	border-radius: 50%;
+}
+
+/* Glowing cockpit dome */
+.enemy--alien::after {
+	inset: 16% 24% 46% 24%;
+	background: radial-gradient(circle at 40% 35%, #ffffff 0%, #ffe03b 65%, #c79f00 100%);
+	border-radius: 50% 50% 25% 25%;
+}
+
+@keyframes alienHover {
+	0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+	50%      { transform: translate(-50%, -50%) translateY(-8%); }
+}
+
+/* =========================================
+   BLUE: NORMAL ENEMY SHIP (Interceptor)
+   ========================================= */
+
+.enemy--normal {
+	--enemy-color: #3b8bff;
+	filter: drop-shadow(0 0 8px rgba(59, 139, 255, 0.85));
+}
+
+/* Standard fighter hull */
+.enemy--normal::before {
+	background: linear-gradient(180deg, #8ec0ff 0%, #3b8bff 55%, #12489e 100%);
+	clip-path: polygon(
+		50% 0%,
+		100% 85%,
+		70% 70%,
+		50% 100%,
+		30% 70%,
+		0% 85%
+	);
+}
+
+/* Cockpit canopy */
+.enemy--normal::after {
+	inset: 28% 40% 38% 40%;
+	background: #d9ecff;
+	clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+/* =========================================
+   STANDALONE PREVIEW PAGE STYLES
+   ========================================= */
+
+.enemy-preview-page {
+	margin: 0;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2rem;
+	background: #081209;
+	color: #39ff14;
+	font-family: "Courier New", Consolas, monospace;
+}
+
+.preview-title {
+	margin: 0;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	font-size: 1.4rem;
+	text-shadow: 0 0 8px rgba(57, 255, 20, 0.45);
+}
+
+.enemy-showcase {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1.5rem;
+}
+
+.enemy-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.9rem;
+	padding: 1.25rem;
+	background: #10161a;
+	border: 1px solid #3a424b;
+	border-radius: 10px;
+}
+
+.enemy-stage {
+	position: relative;
+	width: 140px;
+	height: 140px;
+	background:
+		radial-gradient(circle, transparent 42%, rgba(57, 255, 20, 0.25) 43%, transparent 45%),
+		#081209;
+	border: 1px solid #1d6b10;
+	border-radius: 8px;
+}
+
+.enemy-stage .enemy {
+	--enemy-size: 64px;
+	left: 50%;
+	top: 50%;
+}
+
+.enemy-label {
+	font-size: 0.8rem;
+	font-weight: bold;
+	letter-spacing: 0.1em;
+}
+
+.enemy-label--red    { color: #ff3b3b; }
+.enemy-label--yellow { color: #ffe03b; }
+.enemy-label--blue   { color: #3b8bff; }
+
+@media (prefers-reduced-motion: reduce) {
+	.enemy--demon,
+	.enemy--alien {
+		animation: none;
+	}
+}
