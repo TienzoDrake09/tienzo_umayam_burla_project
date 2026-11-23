@@ -152,11 +152,12 @@
 	let backgroundMusic = null;
 	let currentMusicTrack = "main";
 	let pendingMusicTrack = null;
+	let musicUnlocked = false;
 	const failedMusicTracks = new Set();
 
 	function setBackgroundMusic(track) {
 		currentMusicTrack = track;
-		if (!soundOn || !backgroundMusic) return;
+		if (!soundOn || !backgroundMusic || !musicUnlocked) return;
 
 		const source = track === "game" ? "Audio/ingame.mp3" : "Audio/main.mp3";
 		if (backgroundMusic.getAttribute("src") !== source) {
@@ -582,7 +583,10 @@
 		}
 
 		setBackgroundMusic("main");
-		const retryBackgroundMusic = () => setBackgroundMusic(currentMusicTrack);
+		const retryBackgroundMusic = () => {
+			musicUnlocked = true;
+			setBackgroundMusic(currentMusicTrack);
+		};
 		document.addEventListener("pointerdown", retryBackgroundMusic);
 		document.addEventListener("keydown", retryBackgroundMusic);
 
